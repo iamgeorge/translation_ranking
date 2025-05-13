@@ -1,17 +1,19 @@
-import pandas as pd
+import csv
 
-# === Input and Output Files ===
-input_xlsx = 'source files/en-zh_claude.xlsx'   # Replace with your actual file name
-output_csv = 'source files/En_Zh_claude.csv'
+input_file = 'source files/En_Zh_GPT.csv'
+output_file = 'En_Zh_GPT.csv'
 
-# === Read Excel File ===
-df = pd.read_excel(input_xlsx)
+with open(input_file, newline='', encoding='utf-8') as infile, \
+     open(output_file, 'w', newline='', encoding='utf-8') as outfile:
+    
+    reader = csv.DictReader(infile)
+    fieldnames = [f for f in reader.fieldnames if f.lower() != 'index']
+    fieldnames = ['index'] + fieldnames
 
-# === Add Index Column ===
-df.reset_index(inplace=True)
-df.rename(columns={'index': 'Index'}, inplace=True)
+    writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+    writer.writeheader()
 
-# === Save as CSV ===
-df.to_csv(output_csv, index=False)
-
-print(f"Conversion complete. Saved as {output_csv}")
+    for i, row in enumerate(reader):
+        row = {k: v for k, v in row.items() if k.lower() != 'index'}
+        row['index'] = i
+        writer.writerow(row)

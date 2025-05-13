@@ -3,25 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <title>Translation Ranking</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    :root {
+      --main-color: #339;
+      --hover-color: #66c;
+      --bg-color: #fafafa;
+    }
+
     body {
       font-family: 'Segoe UI', sans-serif;
-      max-width: 900px;
-      margin: auto;
+      margin: 0 auto;
       padding: 20px;
-      background: #fafafa;
+      background: var(--bg-color);
+      max-width: 95%;
+      box-sizing: border-box;
     }
+
+    @media (min-width: 768px) {
+      body {
+        max-width: 850px;
+      }
+    }
+
     h2 {
       text-align: center;
       color: #333;
+      margin-bottom: 10px;
     }
+
     #instructions {
       background: #eef;
-      padding: 10px 15px;
-      border-left: 5px solid #66c;
-      margin-bottom: 20px;
-      border-radius: 4px;
+      padding: 15px 20px;
+      border-left: 5px solid var(--hover-color);
+      border-radius: 6px;
+      margin-bottom: 25px;
+      font-size: 16px;
     }
+
+    #instructions ul {
+      margin-top: 8px;
+    }
+
     .translation {
       position: relative;
       border: 2px solid #ccc;
@@ -31,20 +54,24 @@
       background: #fff;
       transition: all 0.2s ease;
       cursor: pointer;
+      font-size: 16px;
     }
+
     .translation:hover {
-      border-color: #66c;
+      border-color: var(--hover-color);
       background: #f0f8ff;
     }
+
     .translation.selected {
-      border-color: #339;
+      border-color: var(--main-color);
       background: #e6f0ff;
     }
+
     .rank-badge {
       position: absolute;
       top: 6px;
       right: 10px;
-      background: #339;
+      background: var(--main-color);
       color: white;
       font-weight: bold;
       border-radius: 50%;
@@ -54,48 +81,103 @@
       line-height: 24px;
       font-size: 14px;
     }
-    #submit-btn {
+
+    #translations {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
       margin-top: 20px;
+    }
+
+    button {
       padding: 10px 20px;
-      background: #339;
-      color: white;
       font-size: 16px;
       border: none;
       border-radius: 6px;
       cursor: pointer;
     }
+
+    #submit-btn {
+      background: var(--main-color);
+      color: white;
+    }
+
     #submit-btn:hover {
       background: #227;
     }
-    #translations {
-      list-style-type: none;
-      padding: 0;
+
+    #skip-btn {
+      background: #888;
+      color: white;
+    }
+
+    #skip-btn:hover {
+      background: #555;
+    }
+
+    #user-login {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 8px 10px;
+      font-size: 16px;
+      width: 60%;
+      max-width: 250px;
+    }
+
+    #startBtn {
+      padding: 9px 16px;
+      font-size: 16px;
+      background-color: var(--main-color);
+      color: white;
+      border-radius: 5px;
+      margin-left: 10px;
+      border: none;
+    }
+
+    #startBtn:hover {
+      background-color: #227;
     }
   </style>
 </head>
 <body>
 
-<h2>Translation Quality Ranking Task</h2>
+<h2>Translation Quality Ranking Task<br>翻译质量排名任务</h2>
 
 <div id="instructions">
-  <p>Please read the source sentence below and compare the 3 translations. Then <strong>click on each translation in the order you think they rank from best to worst</strong>.</p>
+  <p>
+    Please read the source sentence and evaluate the 3 translations.<br>
+    请阅读原文并评估三个翻译版本。
+  </p>
   <ul>
-    <li>Click once to select — you'll see a number badge indicating the order.</li>
-    <li>Click again to deselect or re-select in a new order.</li>
-    <li>Click "Submit Ranking" to move to the next sentence.</li>
+    <li><strong>Click each translation</strong> in the order from best (1) to worst (3).<br>按从最好到最差点击翻译（顺序为1→2→3）。</li>
+    <li><strong>Click again</strong> to deselect and reselect.<br>再次点击可以取消选择并重新选择。</li>
+    <!-- <li>If the translations are <strong>identical or cannot be ranked</strong>, click <strong>"Skip"</strong>.<br>如果翻译完全一样或无法判断优劣，请点击“跳过”。</li> -->
+    <li>Click <strong>"Submit Ranking"</strong> to save and move to the next.<br>点击“提交排名”保存并进入下一条。</li>
   </ul>
 </div>
 
 <div id="user-login">
-  <label><strong>User ID:</strong></label>
-  <input type="text" id="userIdInput">
-  <button id="startBtn">Start</button>
+  <label><strong>User ID 用户名:</strong></label>
+  <input type="text" id="userIdInput" placeholder="Enter your user ID">
+  <button id="startBtn">Start 开始</button>
 </div>
 
 <div id="ranking-app" style="display:none;">
-  <p><strong>Source:</strong> <span id="sourceText"></span></p>
+  <p><strong>Source 原文:</strong> <span id="sourceText"></span></p>
   <ul id="translations"></ul>
-  <button id="submit-btn">Submit Ranking</button>
+  <div class="button-group">
+    <button id="submit-btn">Submit Ranking 提交排名</button>
+    <!-- <button id="skip-btn">Skip 跳过</button> -->
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -104,13 +186,17 @@ let data = [], userId = "", file = "", currentIndex = 0, orderMap = {}, selected
 
 document.getElementById("startBtn").addEventListener("click", () => {
   userId = document.getElementById("userIdInput").value.trim();
-  if (!userId) return alert("Enter a user ID.");
-  fetch("http://127.0.0.1:5000/get_user_data", {
+  if (!userId) return alert("Enter a user ID / 请输入用户名");
+
+  fetch("https://vue.georgewx.com/get_user_data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: userId })
   })
-  .then(res => res.json())
+  .then(res => {
+    if (!res.ok) throw new Error("User not found / 用户未注册");
+    return res.json();
+  })
   .then(json => {
     file = json.file;
     currentIndex = json.index;
@@ -119,73 +205,102 @@ document.getElementById("startBtn").addEventListener("click", () => {
       document.getElementById("ranking-app").style.display = "block";
       showEntry(currentIndex);
     });
-  });
+  })
+  .catch(err => alert("Login failed 登录失败: " + err.message));
 });
 
 function loadCSV(filename, callback) {
-  fetch("http://127.0.0.1:5000/get_csv/" + filename)
+  fetch("https://vue.georgewx.com/get_csv/" + filename)
     .then(res => res.text())
     .then(text => {
       const parsed = Papa.parse(text, { header: true });
-      data = parsed.data;
+      // Filter out empty rows
+      data = parsed.data.filter(row =>
+        row && row.source && (row.zero_shot || row.maats || row.single_agent)
+      );
       callback();
     });
 }
+async function showEntry(i) {
+  // Advance through any “empty” rows up front
+  while (i < data.length) {
+    const row = data[i];
+    const hasAny = row.source &&
+                   (row.zero_shot || row['MAATS'] || row.single_agent);
+    if (hasAny) break;
 
-function showEntry(i) {
+    // Auto-skip this blank row
+    await fetch("https://vue.georgewx.com/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        index: i,
+        ranking: ["SKIPPED"]
+      })
+    });
+    i++;
+  }
+
+  // No more real entries?
+  if (i >= data.length) {
+    alert("All tasks completed. Thank you! / 所有任务已完成，感谢参与！");
+    return;
+  }
+
+  // We’ve found a valid row at i
+  currentIndex = i;
   const entry = data[i];
-  if (!entry) return alert("All tasks completed. Thank you!");
-  const options = [
-    { id: "zero_shot", text: entry.zero_shot },
-    { id: "MAATS", text: entry.maats },
-    { id: "single_agent", text: entry.single_agent }
-  ].sort(() => Math.random() - 0.5);
-
   selectedOrder = [];
   orderMap = {};
+
+  // Render it:
   document.getElementById("sourceText").textContent = entry.source;
   const ul = document.getElementById("translations");
   ul.innerHTML = "";
-  options.forEach((item, idx) => {
+
+  // Pull translations out (note uppercase “MAATS” from your CSV header)
+  const opts = [
+    { id: "zero_shot",     text: entry.zero_shot },
+    { id: "maats",         text: entry['maats']     },
+    { id: "single_agent",  text: entry.single_agent }
+  ].sort(() => Math.random() - 0.5);
+
+  opts.forEach((itm, idx) => {
     const li = document.createElement("li");
     li.className = "translation";
     li.id = "item" + idx;
-    li.textContent = item.text;
-    li.addEventListener("click", () => handleSelect(li, item.id));
+    li.textContent = itm.text;
+    li.addEventListener("click", () => handleSelect(li, itm.id));
     ul.appendChild(li);
-    orderMap["item" + idx] = item.id;
+    orderMap[li.id] = itm.id;
   });
 }
+
+
+
+
 
 function handleSelect(element, sysId) {
   const idx = selectedOrder.indexOf(sysId);
   if (idx !== -1) {
-    // Already selected — deselect
     selectedOrder.splice(idx, 1);
-    element.classList.remove("selected");
-    const badge = element.querySelector(".rank-badge");
-    if (badge) badge.remove();
   } else {
-    // New selection
     if (selectedOrder.length >= 3) {
-      alert("You’ve already selected all 3 translations.");
+      alert("You’ve already selected all 3 translations. / 您已选择了3个翻译。");
       return;
     }
     selectedOrder.push(sysId);
-    element.classList.add("selected");
-    const badge = document.createElement("span");
-    badge.className = "rank-badge";
-    badge.textContent = selectedOrder.length;
-    element.appendChild(badge);
   }
 
-  // Re-render all badges in correct order
+  // Reset display
   document.querySelectorAll(".translation").forEach(el => {
     el.classList.remove("selected");
-    const b = el.querySelector(".rank-badge");
-    if (b) b.remove();
+    const badge = el.querySelector(".rank-badge");
+    if (badge) badge.remove();
   });
 
+  // Apply current order
   selectedOrder.forEach((sysId, rank) => {
     const liId = Object.keys(orderMap).find(k => orderMap[k] === sysId);
     const li = document.getElementById(liId);
@@ -199,14 +314,25 @@ function handleSelect(element, sysId) {
 
 document.getElementById("submit-btn").addEventListener("click", () => {
   if (selectedOrder.length !== 3) {
-    alert("Please select all 3 translations in order before submitting.");
+    alert("Please select all 3 translations before submitting. / 请先选择三个翻译的顺序。");
     return;
   }
 
-  fetch("http://127.0.0.1:5000/save", {
+  fetch("https://vue.georgewx.com/save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: userId, index: currentIndex, ranking: selectedOrder })
+  }).then(() => {
+    currentIndex++;
+    showEntry(currentIndex);
+  });
+});
+
+document.getElementById("skip-btn").addEventListener("click", () => {
+  fetch("https://vue.georgewx.com/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, index: currentIndex, ranking: ["SKIPPED"] })
   }).then(() => {
     currentIndex++;
     showEntry(currentIndex);
