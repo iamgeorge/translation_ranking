@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Translation Ranking</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      background: #fafafa;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    #instructions {
+      background: #eef;
+      padding: 10px 15px;
+      border-left: 5px solid #66c;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    .translation {
+      position: relative;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      background: #fff;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .translation:hover {
+      border-color: #66c;
+      background: #f0f8ff;
+    }
+    .translation.selected {
+      border-color: #339;
+      background: #e6f0ff;
+    }
+    .rank-badge {
+      position: absolute;
+      top: 6px;
+      right: 10px;
+      background: #339;
+      color: white;
+      font-weight: bold;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      text-align: center;
+      line-height: 24px;
+      font-size: 14px;
+    }
+    #submit-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #339;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #submit-btn:hover {
+      background: #227;
+    }
+    #translations {
+      list-style-type: none;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Translation Quality Ranking Task</h2>
+
+<div id="instructions">
+  <p>Please read the source sentence below and compare the 3 translations. Then <strong>click on each translation in the order you think they rank from best to worst</strong>.</p>
+  <ul>
+    <li>Click once to select — you'll see a number badge indicating the order.</li>
+    <li>Click again to deselect or re-select in a new order.</li>
+    <li>Click "Submit Ranking" to move to the next sentence.</li>
+  </ul>
+</div>
+
+<div id="user-login">
+  <label><strong>User ID:</strong></label>
+  <input type="text" id="userIdInput">
+  <button id="startBtn">Start</button>
+</div>
+
+<div id="ranking-app" style="display:none;">
+  <p><strong>Source:</strong> <span id="sourceText"></span></p>
+  <ul id="translations"></ul>
+  <button id="submit-btn">Submit Ranking</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+let data = [], userId = "", file = "", currentIndex = 0, orderMap = {}, selectedOrder = [];
+
+document.getElementById("startBtn").addEventListener("click", () => {
+  userId = document.getElementById("userIdInput").value.trim();
+  if (!userId) return alert("Enter a user ID.");
+  fetch("http://127.0.0.1:5000/get_user_data", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId })
+  })
+  .then(res => res.json())
+  .then(json => {
+    file = json.file;
+    currentIndex = json.index;
+    loadCSV(file, () => {
+      document.getElementById("user-login").style.display = "none";
+      document.getElementById("ranking-app").style.display = "block";
+      showEntry(currentIndex);
+    });
+  });
+});
+
+function loadCSV(filename, callback) {
+  fetch("http://127.0.0.1:5000/get_csv/" + filename)
+    .then(res => res.text())
+    .then(text => {
+      const parsed = Papa.parse(text, { header: true });
+      data = parsed.data;
+      callback();
+    });
+}
+
+function showEntry(i) {
+  const entry = data[i];
+  if (!entry) return alert("All tasks completed. Thank you!");
+  const options = [
+    { id: "zero_shot", text: entry.zero_shot },
+    { id: "MAATS", text: entry.maats },
+    { id: "single_agent", text: entry.single_agent }
+  ].sort(() => Math.random() - 0.5);
+
+  selectedOrder = [];
+  orderMap = {};
+  document.getElementById("sourceText").textContent = entry.source;
+  const ul = document.getElementById("translations");
+  ul.innerHTML = "";
+  options.forEach((item, idx) => {
+    const li = document.createElement("li");
+    li.className = "translation";
+    li.id = "item" + idx;
+    li.textContent = item.text;
+    li.addEventListener("click", () => handleSelect(li, item.id));
+    ul.appendChild(li);
+    orderMap["item" + idx] = item.id;
+  });
+}
+
+function handleSelect(element, sysId) {
+  const idx = selectedOrder.indexOf(sysId);
+  if (idx !== -1) {
+    // Already selected — deselect
+    selectedOrder.splice(idx, 1);
+    element.classList.remove("selected");
+    const badge = element.querySelector(".rank-badge");
+    if (badge) badge.remove();
+  } else {
+    // New selection
+    if (selectedOrder.length >= 3) {
+      alert("You’ve already selected all 3 translations.");
+      return;
+    }
+    selectedOrder.push(sysId);
+    element.classList.add("selected");
+    const badge = document.createElement("span");
+    badge.className = "rank-badge";
+    badge.textContent = selectedOrder.length;
+    element.appendChild(badge);
+  }
+
+  // Re-render all badges in correct order
+  document.querySelectorAll(".translation").forEach(el => {
+    el.classList.remove("selected");
+    const b = el.querySelector(".rank-badge");
+    if (b) b.remove();
+  });
+
+  selectedOrder.forEach((sysId, rank) => {
+    const liId = Object.keys(orderMap).find(k => orderMap[k] === sysId);
+    const li = document.getElementById(liId);
+    li.classList.add("selected");
+    const badge = document.createElement("span");
+    badge.className = "rank-badge";
+    badge.textContent = rank + 1;
+    li.appendChild(badge);
+  });
+}
+
+document.getElementById("submit-btn").addEventListener("click", () => {
+  if (selectedOrder.length !== 3) {
+    alert("Please select all 3 translations in order before submitting.");
+    return;
+  }
+
+  fetch("http://127.0.0.1:5000/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, index: currentIndex, ranking: selectedOrder })
+  }).then(() => {
+    currentIndex++;
+    showEntry(currentIndex);
+  });
+});
+</script>
+
+</body>
+</html>
