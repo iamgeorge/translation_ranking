@@ -1,2 +1,6 @@
 index,ranking
-0,"single_agent,maats,zero_shot"
+0,"maats,single_agent,zero_shot"
+97,"zero_shot,single_agent,maats"
+98,"single_agent,zero_shot,maats"
+99,"single_agent,maats,zero_shot"
+100,"zero_shot,single_agent,maats"

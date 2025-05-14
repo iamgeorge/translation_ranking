@@ -108,7 +108,12 @@
       color: white;
     }
 
-    #submit-btn:hover {
+    #submit-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    #submit-btn:hover:not(:disabled) {
       background: #227;
     }
 
@@ -146,6 +151,13 @@
     #startBtn:hover {
       background-color: #227;
     }
+
+    #timer {
+      text-align: center;
+      font-size: 16px;
+      color: #c33;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -160,7 +172,6 @@
   <ul>
     <li><strong>Click each translation</strong> in the order from best (1) to worst (3).<br>按从最好到最差点击翻译（顺序为1→2→3）。</li>
     <li><strong>Click again</strong> to deselect and reselect.<br>再次点击可以取消选择并重新选择。</li>
-    <!-- <li>If the translations are <strong>identical or cannot be ranked</strong>, click <strong>"Skip"</strong>.<br>如果翻译完全一样或无法判断优劣，请点击“跳过”。</li> -->
     <li>Click <strong>"Submit Ranking"</strong> to save and move to the next.<br>点击“提交排名”保存并进入下一条。</li>
   </ul>
 </div>
@@ -174,15 +185,16 @@
 <div id="ranking-app" style="display:none;">
   <p><strong>Source 原文:</strong> <span id="sourceText"></span></p>
   <ul id="translations"></ul>
+  <div id="timer">⏳ Please wait 10 seconds before submitting. / 请等待10秒后再提交。</div>
   <div class="button-group">
-    <button id="submit-btn">Submit Ranking 提交排名</button>
-    <!-- <button id="skip-btn">Skip 跳过</button> -->
+    <button id="submit-btn" disabled>Submit Ranking 提交排名</button>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
 let data = [], userId = "", file = "", currentIndex = 0, orderMap = {}, selectedOrder = [];
+let countdownTimer, timeLeft = 10;
 
 document.getElementById("startBtn").addEventListener("click", () => {
   userId = document.getElementById("userIdInput").value.trim();
@@ -214,56 +226,43 @@ function loadCSV(filename, callback) {
     .then(res => res.text())
     .then(text => {
       const parsed = Papa.parse(text, { header: true });
-      // Filter out empty rows
       data = parsed.data.filter(row =>
         row && row.source && (row.zero_shot || row.maats || row.single_agent)
       );
       callback();
     });
 }
+
 async function showEntry(i) {
-  // Advance through any “empty” rows up front
   while (i < data.length) {
     const row = data[i];
-    const hasAny = row.source &&
-                   (row.zero_shot || row['MAATS'] || row.single_agent);
-    if (hasAny) break;
+    if (row.source && (row.zero_shot || row['maats'] || row.single_agent)) break;
 
-    // Auto-skip this blank row
     await fetch("https://vue.georgewx.com/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: userId,
-        index: i,
-        ranking: ["SKIPPED"]
-      })
+      body: JSON.stringify({ user_id: userId, index: i, ranking: ["SKIPPED"] })
     });
     i++;
   }
 
-  // No more real entries?
   if (i >= data.length) {
     alert("All tasks completed. Thank you! / 所有任务已完成，感谢参与！");
     return;
   }
 
-  // We’ve found a valid row at i
   currentIndex = i;
   const entry = data[i];
   selectedOrder = [];
   orderMap = {};
-
-  // Render it:
   document.getElementById("sourceText").textContent = entry.source;
   const ul = document.getElementById("translations");
   ul.innerHTML = "";
 
-  // Pull translations out (note uppercase “MAATS” from your CSV header)
   const opts = [
-    { id: "zero_shot",     text: entry.zero_shot },
-    { id: "maats",         text: entry['maats']     },
-    { id: "single_agent",  text: entry.single_agent }
+    { id: "zero_shot", text: entry.zero_shot },
+    { id: "maats", text: entry['maats'] },
+    { id: "single_agent", text: entry.single_agent }
   ].sort(() => Math.random() - 0.5);
 
   opts.forEach((itm, idx) => {
@@ -275,11 +274,9 @@ async function showEntry(i) {
     ul.appendChild(li);
     orderMap[li.id] = itm.id;
   });
+
+  startCountdown();
 }
-
-
-
-
 
 function handleSelect(element, sysId) {
   const idx = selectedOrder.indexOf(sysId);
@@ -293,14 +290,12 @@ function handleSelect(element, sysId) {
     selectedOrder.push(sysId);
   }
 
-  // Reset display
   document.querySelectorAll(".translation").forEach(el => {
     el.classList.remove("selected");
     const badge = el.querySelector(".rank-badge");
     if (badge) badge.remove();
   });
 
-  // Apply current order
   selectedOrder.forEach((sysId, rank) => {
     const liId = Object.keys(orderMap).find(k => orderMap[k] === sysId);
     const li = document.getElementById(liId);
@@ -310,6 +305,25 @@ function handleSelect(element, sysId) {
     badge.textContent = rank + 1;
     li.appendChild(badge);
   });
+}
+
+function startCountdown() {
+  clearInterval(countdownTimer);
+  timeLeft = 10;
+  document.getElementById("submit-btn").disabled = true;
+  const timerDisplay = document.getElementById("timer");
+
+  timerDisplay.textContent = `⏳ Please wait ${timeLeft} seconds before submitting. / 请等待 ${timeLeft} 秒后再提交。`;
+  countdownTimer = setInterval(() => {
+    timeLeft--;
+    if (timeLeft > 0) {
+      timerDisplay.textContent = `⏳ Please wait ${timeLeft} seconds before submitting. / 请等待 ${timeLeft} 秒后再提交。`;
+    } else {
+      clearInterval(countdownTimer);
+      timerDisplay.textContent = `✅ You may now submit. / 现在可以提交了。`;
+      document.getElementById("submit-btn").disabled = false;
+    }
+  }, 1000);
 }
 
 document.getElementById("submit-btn").addEventListener("click", () => {
@@ -322,17 +336,6 @@ document.getElementById("submit-btn").addEventListener("click", () => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: userId, index: currentIndex, ranking: selectedOrder })
-  }).then(() => {
-    currentIndex++;
-    showEntry(currentIndex);
-  });
-});
-
-document.getElementById("skip-btn").addEventListener("click", () => {
-  fetch("https://vue.georgewx.com/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId, index: currentIndex, ranking: ["SKIPPED"] })
   }).then(() => {
     currentIndex++;
     showEntry(currentIndex);

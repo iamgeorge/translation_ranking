@@ -1,19 +1,20 @@
 import csv
 
-input_file = 'source files/En_Zh_GPT.csv'
-output_file = 'En_Zh_GPT.csv'
+input_file = 'source files/Zh_En_GPT.csv'
+output_file = 'Zh_En_GPT.csv'
 
-with open(input_file, newline='', encoding='utf-8') as infile, \
-     open(output_file, 'w', newline='', encoding='utf-8') as outfile:
+with open(input_file, mode='r', encoding='utf-8') as infile, \
+     open(output_file, mode='w', newline='', encoding='utf-8') as outfile:
     
-    reader = csv.DictReader(infile)
-    fieldnames = [f for f in reader.fieldnames if f.lower() != 'index']
-    fieldnames = ['index'] + fieldnames
+    reader = csv.reader(infile)
+    writer = csv.writer(outfile)
 
-    writer = csv.DictWriter(outfile, fieldnames=fieldnames)
-    writer.writeheader()
+    # Read header and write new header with "index"
+    header = next(reader)
+    writer.writerow(['index'] + header)
 
-    for i, row in enumerate(reader):
-        row = {k: v for k, v in row.items() if k.lower() != 'index'}
-        row['index'] = i
-        writer.writerow(row)
+    # Write each row with a new index
+    for idx, row in enumerate(reader):
+        writer.writerow([idx] + row)
+
+print(f"Saved with index to: {output_file}")
