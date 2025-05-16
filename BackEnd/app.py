@@ -48,17 +48,27 @@ def get_csv(filename):
 @app.route("/save", methods=["POST"])
 def save():
     data = request.json
-    user_id, index, ranking = data["user_id"], data["index"], data["ranking"]
-    log_file = os.path.join(USER_LOG_DIR, f"{user_id}.csv")
+    user_id = data["user_id"]
+    index = data["index"]
+    ranking = data["ranking"]
+    translations = data.get("translations", {})
 
+    log_file = os.path.join(USER_LOG_DIR, f"{user_id}.csv")
     is_new = not os.path.exists(log_file)
-    with open(log_file, "a", newline="") as f:
+
+    with open(log_file, "a", newline='', encoding="utf-8") as f:
         writer = csv.writer(f)
         if is_new:
-            writer.writerow(["index", "ranking"])
-        writer.writerow([index, ",".join(ranking)])
+            writer.writerow(["index", "ranking", "maats", "zero_shot", "single_agent"])
+        writer.writerow([
+            index,
+            ",".join(ranking),
+            translations.get("maats", ""),
+            translations.get("zero_shot", ""),
+            translations.get("single_agent", "")
+        ])
 
-    # Update index
+    # Update user progress
     with open(USER_STATE_FILE) as f:
         state = json.load(f)
     state[user_id]["index"] = index + 1
@@ -66,6 +76,7 @@ def save():
         json.dump(state, f)
 
     return {"status": "saved"}
+
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', port = 5000, debug = True)

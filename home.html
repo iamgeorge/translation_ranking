@@ -332,14 +332,28 @@ document.getElementById("submit-btn").addEventListener("click", () => {
     return;
   }
 
-  fetch("https://vue.georgewx.com/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId, index: currentIndex, ranking: selectedOrder })
-  }).then(() => {
-    currentIndex++;
-    showEntry(currentIndex);
-  });
+  const entry = data[currentIndex];
+const translations = {
+  zero_shot: entry.zero_shot,
+  maats: entry.maats,
+  single_agent: entry.single_agent
+};
+
+fetch("https://vue.georgewx.com/save", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    user_id: userId,
+    index: currentIndex,
+    ranking: selectedOrder,
+    file: file,
+    translations: translations
+  })
+}).then(() => {
+  currentIndex++;
+  showEntry(currentIndex);
+});
+
 });
 </script>
 

@@ -1,2 +1,36 @@
 index,ranking
 0,"zero_shot,single_agent,maats"
+1,"zero_shot,maats,single_agent"
+2,"single_agent,zero_shot,maats"
+3,"single_agent,maats,zero_shot"
+4,"single_agent,maats,zero_shot"
+5,"maats,single_agent,zero_shot"
+6,"maats,single_agent,zero_shot"
+7,"single_agent,maats,zero_shot"
+8,"maats,single_agent,zero_shot"
+9,"maats,single_agent,zero_shot",,,
+10,"maats,zero_shot,single_agent",,,
+11,"single_agent,maats,zero_shot",,,
+12,"single_agent,maats,zero_shot",,,
+13,"maats,zero_shot,single_agent",,,
+14,"single_agent,zero_shot,maats",,,
+15,"single_agent,zero_shot,maats",,,
+16,"zero_shot,maats,single_agent",,,
+17,"zero_shot,single_agent,maats",,,
+18,"single_agent,zero_shot,maats",,,
+19,"single_agent,maats,zero_shot",,,
+20,"maats,single_agent,zero_shot",,,
+21,"maats,single_agent,zero_shot",Certain characters in single-character remarks are organized in the same sequence as their GB/I 11383-1989 counterparts.,Single character memorization of partial characters is arranged according to the corresponding character order in GB/T 11383-1989.,The characters are arranged according to the corresponding character order specified in GB/T 11383-1989.
+22,"maats,single_agent,zero_shot",7-Digit Code Allocation,7 digit allocation,7-digit code allocation
+23,"maats,zero_shot,single_agent",Allocation of code points for two-character components.,Code point allocation for two-character components.,Code point allocation for the two-character components.
+24,"single_agent,maats,zero_shot","The arrangement of the double-byte character codes is divided into two parts, 0x8140 to 0xFE7F and 0x8180 to 0xFEFE, with a total of 23 940 character codes.","The arrangement of code positions for the double-byte part is divided into two parts, 0x8140 to 0xFE7E and 0x8180 to 0xFEFE, with a total of 23,940 code positions.","The arrangement of code positions for the double-byte part is divided into two ranges, 0x8140 to 0xFE7E and 0x8180 to 0xFEFE, totaling 23,940 code positions."
+25,"maats,single_agent,zero_shot","The 4,370 code points in the Double-Byte Area 1.","4,370 code points.",The 1st double-byte area has 846 code points.
+26,"single_agent,zero_shot,maats",192 码位,192 character positions,The code positions are in the range of 0xA8 to 0xA9 in the double-byte character set 5.
+27,"maats,single_agent,zero_shot",Diagram of the Encoding Structure for Dual-Character Vegetable Components.,Dual-character vegetable part encoding space structure diagram.,Encoding space structure diagram for dual-character vegetable components.
+28,"maats,zero_shot,single_agent",The four-byte character code assignments not specified in Table 3 are provided in Section 6.3.,The four-byte character code assignments not specified in Table 3 are given in 6.3.,The four-byte person code assignments not specified in Table 3 are in 6.3.
+29,"maats,zero_shot,single_agent",Arrangement of Code Positions for Four-Character Radical Components in Table 3.,Table 3 Arrangement of code positions for four-character radical components.,Table 3 Arrangement of code positions for four-character radical components.
+30,"single_agent,zero_shot,maats",Code digit count and range,"Code point range, code point count, character count.","Code point range, number of code points, character count."
+31,"maats,single_agent,zero_shot",Explanation of the 8 Characters and Codes,8 parts of character and code description.,The 8 parts of character and code description.
+32,"zero_shot,single_agent,maats","Level 1 implementation supports the single-byte encoding, double-byte encoding, and four-character encoding of CJK Unified Ideographs (i.e., <0x82358F33> - <0x82359636>) and CJK Unified Ideographs Extension A (i.e., <0x8139EE39> - <0x82358738>).","Level 1 implementation supports the single-byte encoding part, the double-season encoding part, and the four-character encoding part of the CJK Unified Ideographs (i.e., 0x82358F33 - 0x82359636) and CJK Unified Ideographs Extension A (i.e., 0x8139EE39 - 0x82358738).","Level 1 implementation supports the single-byte encoding part, the double-byte encoding part, and the four-character encoding part of the CJK Unified Ideographs (i.e., 0x82358F33 - 0x82359636) and CJK Unified Ideographs Extension A (i.e., 0x8139EE39 - 0x82358738)."
+33,"zero_shot,single_agent,maats",Achieving Level 2 includes the encoding of Chinese characters that are not covered within the General Standard Chinese Character Set Level 1.,"In addition, the implementation of Level 2 includes the encoding of Chinese characters that are not included in Level 1 of the ""General Standard Chinese Character Set"".","The implementation of Level 2 includes the Chinese characters that are not contained within Level 1 of the ""General Standard Chinese Character Set""."
+34,"maats,single_agent,zero_shot",The system software and supporting software shall meet the requirements of Level 2 implementation.,System software and supporting software shall meet the requirements of implementation level 2.,The system software and supporting software shall meet the requirements of implementation level 2.

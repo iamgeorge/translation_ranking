@@ -1,4 +1,6 @@
 index,ranking
+0,"maats,single_agent,zero_shot"
+1,"maats,single_agent,zero_shot"
 2,"zero_shot,single_agent,MAATS"
 3,"MAATS,single_agent,zero_shot"
 4,"zero_shot,MAATS,single_agent"

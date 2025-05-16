@@ -93,3 +93,4 @@ index,ranking
 91,"zero_shot,maats,single_agent"
 92,"single_agent,zero_shot,maats"
 93,"zero_shot,maats,single_agent"
+94,"maats,single_agent,zero_shot"
